@@ -15,7 +15,7 @@ console.log(storagePath('screenshots'))
 
 async function takeScreenshot(query) {
     const browser = await puppeteer.launch({
-        headless: false,
+        headless: true,
         args: ['--start-maximized'],
         defaultViewport: { width: query.width || 1920, height: query.height || 1080 }
     });
