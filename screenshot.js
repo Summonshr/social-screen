@@ -11,12 +11,10 @@ function storagePath(path) {
     return directory + path;
 }
 
-console.log(storagePath('screenshots'))
-
 async function takeScreenshot(query) {
     const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--start-maximized'],
+        headless: "new",
+        args: ['--window-size=1920,1080', '--disable-notifications', '--no-sandbox'],
         defaultViewport: { width: query.width || 1920, height: query.height || 1080 }
     });
     const page = await browser.newPage();
