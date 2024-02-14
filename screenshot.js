@@ -21,7 +21,9 @@ async function takeScreenshot(query) {
     await page.goto(query.url);
     const ulElement = await page.$(query.element || "html");
     let name = storagePath(generateMd(query) + '.png');
-    await ulElement.screenshot({ path: name, clip: { width: query.width || '1920', height: query.height || '1080' } });
+    if (ulElement) {
+        await ulElement.screenshot({ path: name, clip: { width: query.width || '1920', height: query.height || '1080' } });
+    }
     await browser.close();
     return name;
 }
