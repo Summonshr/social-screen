@@ -2,14 +2,14 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const { trimEnd } = require('lodash');
 
-
+console.log(process.argv)
 function storagePath(path) {
     const directory = __dirname + '/screenshots/';
     return directory + path;
 }
 
 const browser = puppeteer.launch({
-    headless: false,
+    headless: process.argv.includes('--prod') ? true : false,
     args: ['--window-size=1920,1080', '--disable-notifications', '--no-sandbox'],
     defaultViewport: { width: 1920, height: 1080 }
 });
@@ -18,7 +18,6 @@ async function takeScreenshot(query, imageName) {
     try {
         const page = await (await browser).newPage();
         await page.goto(query.url.startsWith('http') ? query.url : 'https://' + query.url);
-
         const element = await page.$(query.element);
         const boundingBox = await element.boundingBox();
         const screenshot = await page.screenshot({

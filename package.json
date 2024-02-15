@@ -6,6 +6,7 @@
     "puppeteer": "^22.0.0"
   },
   "scripts": {
-    "start": "node screenshot.js"
+    "dev": "node screenshot.js --dev",
+    "prod": "node screenshot.js --prod"
   }
 }
