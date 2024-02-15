@@ -1,31 +1,47 @@
 const puppeteer = require('puppeteer');
-const md5 = require('md5');
-const fs = require('fs')
+const fs = require('fs');
+const { trimEnd } = require('lodash');
 
-function generateMd({ url, element, width, height }) {
-    return md5(url + element + width + height);
-}
 
 function storagePath(path) {
     const directory = __dirname + '/screenshots/';
     return directory + path;
 }
 
-async function takeScreenshot(query) {
-    const browser = await puppeteer.launch({
-        headless: "new",
-        args: ['--window-size=1920,1080', '--disable-notifications', '--no-sandbox'],
-        defaultViewport: { width: query.width || 1920, height: query.height || 1080 }
-    });
-    const page = await browser.newPage();
-    await page.goto(query.url);
-    const ulElement = await page.$(query.element || "html");
-    let name = storagePath(generateMd(query) + '.png');
-    if (ulElement) {
-        await ulElement.screenshot({ path: name, clip: { width: query.width || '1920', height: query.height || '1080' } });
+const browser = puppeteer.launch({
+    headless: false,
+    args: ['--window-size=1920,1080', '--disable-notifications', '--no-sandbox'],
+    defaultViewport: { width: 1920, height: 1080 }
+});
+
+async function takeScreenshot(query, imageName) {
+    try {
+        const page = await (await browser).newPage();
+        await page.goto(query.url.startsWith('http') ? query.url : 'https://' + query.url);
+
+        const element = await page.$(query.element);
+        const boundingBox = await element.boundingBox();
+        const screenshot = await page.screenshot({
+            clip: {
+                x: boundingBox.x,
+                y: boundingBox.y,
+                width: boundingBox.width,
+                height: boundingBox.height
+            }
+        });
+        const folder = storagePath(query.element + '/' + query.url);
+
+        if (!fs.existsSync(folder)) {
+            fs.mkdirSync(folder, { recursive: true });
+        }
+
+        fs.writeFileSync(folder + '/screenshot.png', screenshot);
+        await page.close();
+
+        return folder + '/screenshot.png';
+    } catch (error) {
+        console.log(error)
     }
-    await browser.close();
-    return name;
 }
 
 const fastify = require('fastify')({
@@ -33,18 +49,31 @@ const fastify = require('fastify')({
 })
 
 // Declare a route
-fastify.get('/screenshot', async function (request, reply) {
-    let name = storagePath(generateMd(request.query) + '.png');
-    console.log(name)
-    if (!fs.existsSync(name)) {
-        name = await takeScreenshot(request.query);
+fastify.get('/screenshot/:element/*', async function (request, reply) {
+
+    let url = request.params['*'];
+
+    let fileToPlace = __dirname + '/screenshots/' + request.params.element + '/' + url;
+
+    if (fs.existsSync(fileToPlace)) {
+        const stream = fs.readFileSync(fileToPlace);
+        reply.type('image/png').header('Cache-Control', 'public, max-age=86400').send(stream);
+        return;
     }
+
+    let name = await takeScreenshot({
+        url: trimEnd(url, 'screenshot.png'),
+        element: request.params.element || 'html',
+    });
+
     const stream = fs.readFileSync(name);
+
     reply.type('image/png').header('Cache-Control', 'public, max-age=86400').send(stream);
+
 })
 
 // Run the server!
-fastify.listen({ port: 3000 }, function (err, address) {
+fastify.listen({ port: 3005 }, function (err, address) {
     if (err) {
         fastify.log.error(err)
         process.exit(1)
