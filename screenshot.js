@@ -2,7 +2,6 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const { trimEnd } = require('lodash');
 
-console.log(process.argv)
 function storagePath(path) {
     const directory = __dirname + '/screenshots/';
     return directory + path;
@@ -22,12 +21,13 @@ async function takeScreenshot(query, imageName) {
         const boundingBox = await element.boundingBox();
         const screenshot = await page.screenshot({
             clip: {
-                x: boundingBox.x,
-                y: boundingBox.y,
-                width: boundingBox.width,
-                height: boundingBox.height
+                x: boundingBox.x + 10,
+                y: boundingBox.y + 10,
+                width: boundingBox.width - 10,
+                height: boundingBox.height - 10
             }
         });
+        
         const folder = storagePath(query.element + '/' + query.url);
 
         if (!fs.existsSync(folder)) {
@@ -35,9 +35,12 @@ async function takeScreenshot(query, imageName) {
         }
 
         fs.writeFileSync(folder + '/screenshot.png', screenshot);
-        await page.close();
+        
+        setTimeout(async () => {
+            await page.close();
+        },3000)
 
-        return folder + '/screenshot.png';
+        return screenshot;
     } catch (error) {
         console.log(error)
     }
@@ -48,31 +51,31 @@ const fastify = require('fastify')({
 })
 
 // Declare a route
-fastify.get('/screenshot/:element/*', async function (request, reply) {
+fastify.get('/screenshots/:element/*', async function (request, reply) {
 
     let url = request.params['*'];
 
     let fileToPlace = __dirname + '/screenshots/' + request.params.element + '/' + url;
 
-    if (fs.existsSync(fileToPlace)) {
-        const stream = fs.readFileSync(fileToPlace);
-        reply.type('image/png').header('Cache-Control', 'public, max-age=86400').send(stream);
-        return;
-    }
+    // if (fs.existsSync(fileToPlace)) {
+    //     const stream = fs.readFileSync(fileToPlace);
+    //     reply.type('image/png').header('Cache-Control', 'public, max-age=86400').send(stream);
+    //     return;
+    // }
 
-    let name = await takeScreenshot({
+    let stream = await takeScreenshot({
         url: trimEnd(url, 'screenshot.png'),
         element: request.params.element || 'html',
     });
 
-    const stream = fs.readFileSync(name);
-
-    reply.type('image/png').header('Cache-Control', 'public, max-age=86400').send(stream);
+    reply
+    .type('image/png')
+    .send(stream);
 
 })
 
 // Run the server!
-fastify.listen({ port: 3005 }, function (err, address) {
+fastify.listen({ port: 3000 }, function (err, address) {
     if (err) {
         fastify.log.error(err)
         process.exit(1)
