@@ -26,13 +26,21 @@ async function takeScreenshot(query) {
         await page.goto(query.url.startsWith('http') ? query.url : 'https://' + query.url, { waitUntil: 'domcontentloaded' });
         await page.waitForSelector(query.element, { visible: true })
         const element = await page.$(query.element);
+
+        await page.evaluate((element) => {
+            element.style['min-width'] = '800px';
+            element.style['min-height'] = '418px';
+            element.style['display'] = 'flex';
+            element.style['align-items'] = 'center';
+        }, element);
+
         const boundingBox = await element.boundingBox();
         const screenshot = await page.screenshot({
             clip: {
-                x: boundingBox.x + 10,
-                y: boundingBox.y + 10,
-                width: boundingBox.width - 10,
-                height: boundingBox.height - 10
+                x: boundingBox.x,
+                y: boundingBox.y,
+                width: boundingBox.width,
+                height: boundingBox.height,
             }
         });
 
@@ -50,6 +58,7 @@ async function takeScreenshot(query) {
         console.log(error)
     }
 }
+takeScreenshot({url: 'blog.sumanshresth.com.np/posts/20-laravel-select-in-collection', element: 'article'});
 
 const rerun = async function () {
     try {
@@ -87,7 +96,7 @@ const rerun = async function () {
     } catch (error) {
 
     }
-    setTimeout(rerun, 2000);
+    setTimeout(rerun, 5000);
 }
 
-setTimeout(rerun, 10000);
+// setTimeout(rerun, 10000);
