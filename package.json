@@ -8,7 +8,9 @@
   },
   "scripts": {
     "dev": "nodemon screenshot.js --dev",
-    "prod": "node screenshot.js --prod"
+    "prod": "node server.js --prod",
+    "job": "node background.js --prod"
+
   },
   "license": "MIT"
 }
