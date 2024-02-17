@@ -96,7 +96,7 @@ const rerun = async function () {
     } catch (error) {
 
     }
-    setTimeout(rerun, 500);
+    setTimeout(rerun, 2000);
 }
 
 setTimeout(rerun, 10000);
