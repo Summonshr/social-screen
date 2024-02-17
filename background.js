@@ -99,4 +99,4 @@ const rerun = async function () {
     setTimeout(rerun, 5000);
 }
 
-// setTimeout(rerun, 10000);
+setTimeout(rerun, 10000);
