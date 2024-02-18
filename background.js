@@ -93,7 +93,7 @@ const rerun = async function () {
                 console.error(error.message);
             }
         });
-        setTimeout(rerun, 2000);
+        setTimeout(rerun, 15000);
     } catch (error) {
 
     }
