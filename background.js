@@ -20,6 +20,13 @@ const browser = puppeteer.launch({
 });
 
 async function takeScreenshot(query) {
+    const folder = storagePath(query.element + '/' + query.url);
+
+    const filePath = path.join(folder, 'screenshot.png');
+
+    if (fs.existsSync(filePath)) {
+        return
+    }
     const page = await (await browser).newPage();
 
     try {
@@ -50,7 +57,6 @@ async function takeScreenshot(query) {
 
         await page.close();
 
-        const folder = storagePath(query.element + '/' + query.url);
 
         if (!fs.existsSync(folder)) {
             fs.mkdirSync(folder, { recursive: true });
@@ -96,7 +102,7 @@ const rerun = async function () {
                 console.error(error.message);
             }
         });
-        setTimeout(rerun, 15000);
+        setTimeout(rerun, 5000);
     } catch (error) {
 
     }
