@@ -24,7 +24,11 @@ async function takeScreenshot(query) {
 
     try {
         await page.goto(query.url.startsWith('http') ? query.url : 'https://' + query.url, { waitUntil: 'domcontentloaded' });
-        await page.waitForSelector(query.element, { visible: true })
+        try {
+            await page.waitForSelector(query.element, { visible: true });
+        } catch (error) {
+            await page.close();
+        }
         const element = await page.$(query.element);
 
         await page.evaluate((element) => {
@@ -55,7 +59,6 @@ async function takeScreenshot(query) {
         fs.writeFileSync(folder + '/screenshot.png', screenshot);
     } catch (error) {
         await page.close();
-        console.log(error)
     }
 }
 
