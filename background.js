@@ -4,7 +4,6 @@ const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('database');
 
 db.serialize(() => {
-    db.run("Drop table if exists urls");
     db.run("CREATE TABLE IF NOT EXISTS urls (url TEXT, element varchar2(255),  UNIQUE(url, element))");
 });
 
@@ -21,9 +20,6 @@ const browser = puppeteer.launch({
 
 async function takeScreenshot(query) {
     const folder = storagePath(query.element + '/' + query.url);
-    if(fs.existsSync(folder + '/screenshot.png')) {
-        return;
-    }
     const page = await (await browser).newPage();
 
     try {
@@ -31,6 +27,7 @@ async function takeScreenshot(query) {
         try {
             await page.waitForSelector(query.element, { visible: true });
         } catch (error) {
+		console.log(error)
             await page.close();
         }
         const element = await page.$(query.element);
@@ -59,7 +56,8 @@ async function takeScreenshot(query) {
 
         fs.writeFileSync(folder + '/screenshot.png', screenshot);
     } catch (error) {
-    }
+	console.log(error)
+   }
     page.close();
 
 }
@@ -77,8 +75,9 @@ const rerun = async function () {
                         }
                     });
                 });
-
-                for await (const row of rows) {
+               	if(rows.length === 0) process.exit(1) 
+		for await (const row of rows) {
+                    await takeScreenshot(row);
                     await new Promise((resolve, reject) => {
                         const deleteStmt = db.prepare("DELETE FROM urls WHERE url = ? AND element = ?");
                         deleteStmt.run(row.url, row.element, (err) => {
@@ -91,17 +90,16 @@ const rerun = async function () {
                             }
                         });
                     });
-                    await takeScreenshot(row);
                 }
 
             } catch (error) {
                 console.error(error.message);
             }
         });
-        setTimeout(rerun, 2000);
+        setTimeout(rerun, 5000);
     } catch (error) {
-
+	console.log(error.message)
     }
 }
 
-setTimeout(rerun, 1000);
+setTimeout(rerun, 5000);
