@@ -21,7 +21,24 @@ fastify.get('/screenshots/:element/*', async function (request, reply) {
         .send({ 'message': "Added to queue" });
 })
 
-fastify.listen({ port: 3000 }, function (err, address) {
+fastify.post('/bulk', async function (request, reply) {
+    try {
+        const stmt = db.prepare("INSERT OR IGNORE INTO urls VALUES (?, ?)");
+
+        request.body.screens.forEach(row => {
+            stmt.run(row.url, row.element);
+        });
+        
+        stmt.finalize();
+
+    } catch (error) {
+        console.log(error)
+    }
+    reply
+        .send({ 'message': "Added to queue" });
+})
+
+fastify.listen({ port: 3005 }, function (err, address) {
     if (err) {
         fastify.log.error(err)
         process.exit(1)

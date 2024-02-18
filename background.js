@@ -58,11 +58,10 @@ async function takeScreenshot(query) {
         console.log(error)
     }
 }
-takeScreenshot({url: 'blog.sumanshresth.com.np/posts/20-laravel-select-in-collection', element: 'article'});
 
 const rerun = async function () {
     try {
-        db.serialize(async () => {
+        await db.serialize(async () => {
             try {
                 const rows = await new Promise((resolve, reject) => {
                     db.all("SELECT * FROM urls limit 1", (err, rows) => {
@@ -89,14 +88,15 @@ const rerun = async function () {
                     });
                     await takeScreenshot(row);
                 }
+
             } catch (error) {
                 console.error(error.message);
             }
         });
+        setTimeout(rerun, 2000);
     } catch (error) {
 
     }
-    setTimeout(rerun, 2000);
 }
 
 setTimeout(rerun, 10000);
