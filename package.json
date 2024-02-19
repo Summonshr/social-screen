@@ -7,7 +7,7 @@
     "sqlite3": "^5.1.7"
   },
   "scripts": {
-    "dev": "nodemon screenshot.js --dev",
+    "dev": "nodemon server.js --dev",
     "prod": "node server.js --prod",
     "job": "node background.js --prod"
 
