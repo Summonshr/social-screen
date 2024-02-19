@@ -13,6 +13,7 @@ function storagePath(path) {
 }
 
 const browser = puppeteer.launch({
+    timeout: 60000,
     headless: process.argv.includes('--prod') ? "new" : false,
     args: ['--window-size=1920,1080', '--disable-notifications', '--no-sandbox'],
     defaultViewport: { width: 1920, height: 1080 }
@@ -27,8 +28,9 @@ async function takeScreenshot(query) {
         try {
             await page.waitForSelector(query.element, { visible: true });
         } catch (error) {
-		console.log(error)
+	    console.log(error)
             await page.close();
+	    return;
         }
         const element = await page.$(query.element);
 
@@ -55,11 +57,11 @@ async function takeScreenshot(query) {
         }
 
         fs.writeFileSync(folder + '/screenshot.png', screenshot);
+	console.log('Screenshot taken for: ' + folder)
     } catch (error) {
 	console.log(error)
    }
-    page.close();
-
+	try {await page.close()} catch(error) {}
 }
 
 const rerun = async function () {
@@ -75,7 +77,11 @@ const rerun = async function () {
                         }
                     });
                 });
-               	if(rows.length === 0) process.exit(1) 
+               	if(rows.length === 0) {
+			process.exit(0);
+	         	return;
+		}
+
 		for await (const row of rows) {
                     await takeScreenshot(row);
                     await new Promise((resolve, reject) => {
@@ -93,13 +99,17 @@ const rerun = async function () {
                 }
 
             } catch (error) {
-                console.error(error.message);
+	    console.error(error.message);
             }
         });
         setTimeout(rerun, 5000);
     } catch (error) {
-	console.log(error.message)
+        console.log(error.message)
     }
 }
 
+try {
 setTimeout(rerun, 5000);
+} catch(error) {
+process.exit(0)	
+}
