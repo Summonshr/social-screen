@@ -37,7 +37,7 @@ const takeScreenshot = async (query, browser) => {
     try {
         await page.goto(query.url.startsWith('http') ? query.url : 'https://' + query.url, { waitUntil: 'domcontentloaded' });
         try {
-            await page.waitForSelector(query.element, { visible: true });
+            await page.waitForSelector(query.element, { visible: true, timeout: 5000 });
         } catch (error) {
             console.log(error);
             await page.close();
