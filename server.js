@@ -38,7 +38,7 @@ fastify.post('/bulk', async function (request, reply) {
         .send({ 'message': "Added to queue" });
 })
 
-fastify.listen({ port: 3005 }, function (err, address) {
+fastify.listen({ port: 3000 }, function (err, address) {
     if (err) {
         fastify.log.error(err)
         process.exit(1)
