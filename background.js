@@ -48,7 +48,7 @@ const takeScreenshot = async (query, browser) => {
         await page.evaluate((element) => {
             element.style.minWidth = '800px';
             element.style.minHeight = '418px';
-            if (element.tagName.toLowerCase() !== 'article pre') {
+            if (element.tagName.toLowerCase() === 'article pre') {
                 element.style.display = 'flex';
                 element.style.alignItems = 'center';
             }
